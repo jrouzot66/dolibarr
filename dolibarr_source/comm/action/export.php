@@ -142,12 +142,16 @@ function execute($url, $user, $langs, $db, $api_key) {
         }
 
         $location = isset($action->location) ? $action->location : '';
-        $mapping = str_replace(' ', '%20', $location);
+        $mapping =  rawurlencode($location);
 
         list($ok, $body, $meta) = fetch_url_auto($url . '/geocode/search?text=' . $mapping . '&format=json&apiKey=' . $api_key);
         $content = json_decode($body, true);
         $mappingLocation = isset($content['results'][0]['bbox']['lon1']) && isset($content['results'][0]['bbox']['lat1'])
             ? $content['results'][0]['bbox']['lat1'] . ',' . $content['results'][0]['bbox']['lon1'] : null;
+
+        if ($mappingLocation === null && isset($content['results']['lon']) && isset($content['results']['lat'])) {
+            $mappingLocation = $content['results']['lat'] . ',' . $content['results']['lon'];
+        }
 
         $row = array(
             $eventDate,
@@ -173,11 +177,14 @@ function execute($url, $user, $langs, $db, $api_key) {
                 if ($obj_check) {
                     $isUserInEvent = 'Oui ';
                     $address = '' . $obj_check->address . ' ' . $obj_check->zip . ' ' . $obj_check->town;
-                    $mapping = str_replace(' ', '%20', $address);
-                    list($ok, $body, $meta) = fetch_url_auto($url . '/geocode/search?text=' . $mapping . '&format=json&apiKey=' . $api_key);
+                    $mappingAddress =  rawurlencode($address);
+                    list($ok, $body, $meta) = fetch_url_auto($url . '/geocode/search?text=' . $mappingAddress . '&format=json&apiKey=' . $api_key);
                     $content = json_decode($body, true);
                     $mappingUserLocation = isset($content['results'][0]['bbox']['lon1']) && isset($content['results'][0]['bbox']['lat1'])
                         ? $content['results'][0]['bbox']['lat1'] . ',' . $content['results'][0]['bbox']['lon1'] : null;
+                    if ($mappingUserLocation === null && isset($content['results']['lon']) && isset($content['results']['lat'])) {
+                        $mappingUserLocation = $content['results']['lat'] . ',' . $content['results']['lon'];
+                    }
                     if ($mappingUserLocation !== null && $mappingLocation !== null) {
                         list($ok, $body, $meta) = fetch_url_auto($url . '/routing?waypoints=' . $mappingLocation . '|' . $mappingUserLocation . '&details=elevation&mode=drive&apiKey=' . $api_key);
                         $content = json_decode($body, true);
@@ -189,7 +196,14 @@ function execute($url, $user, $langs, $db, $api_key) {
                         }
                         $isUserInEvent .= $distance;
                     } else {
-                        $isUserInEvent .= "(Informations manquantes)";
+                        if ($mappingUserLocation === null) {
+                            $isUserInEvent .= "(Lieu de l'utilisateur inconnu)";
+                            //$isUserInEvent .= $url . '/geocode/search?text=' . $mappingAddress . '&format=json&apiKey=' . $api_key;
+                        }
+                        if ($mappingLocation === null) {
+                            $isUserInEvent .= "(Lieu de l'événement inconnu)";
+                            //$isUserInEvent .= $url . '/geocode/search?text=' . $mapping . '&format=json&apiKey=' . $api_key;
+                        }
                     }
                 }
             }
