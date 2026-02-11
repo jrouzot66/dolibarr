@@ -20,7 +20,7 @@ function fetch_url_auto($url)
             'method' => 'GET',
             'max_redirects' => 5,
             'ignore_errors' => true,
-            'header' => "User-Agent: PHP/" . PHP_VERSION . "\r\n",
+            'header' => "User-Agent: Dolibarr-Export/1.0\r\n",
         ],
         'ssl' => [
             'verify_peer' => true,
@@ -33,8 +33,6 @@ function fetch_url_auto($url)
         if ($res !== false) {
             return [true, $res, isset($http_response_header) ? $http_response_header : null];
         }
-        $err = error_get_last();
-        $msg = isset($err['message']) ? $err['message'] : 'Unknown error using file_get_contents';
     }
 
     if (extension_loaded('curl')) {
@@ -46,15 +44,16 @@ function fetch_url_auto($url)
         }
     }
 
-    return [false, 'allow_url_fopen disabled and cURL extension not available', null];
+    return [false, 'API unavailable', null];
 }
 
 function http_get_curl($url) {
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-    curl_setopt($ch, CURLOPT_USERAGENT, 'PHP-cURL');
+    curl_setopt($ch, CURLOPT_USERAGENT, 'Dolibarr-Export/1.0');
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
     $res = curl_exec($ch);
     if ($res === false) {
         $err = curl_error($ch);
@@ -66,7 +65,57 @@ function http_get_curl($url) {
     return [$httpCode, $res];
 }
 
-function execute($url, $user, $langs, $db, $api_key) {
+// Géocodage via Nominatim (OSM)
+function geocode_address($address) {
+    if (empty($address)) {
+        return null;
+    }
+
+    $query = rawurlencode(trim($address));
+    $url = 'https://nominatim.openstreetmap.org/search?format=json&q=' . $query . '&limit=1';
+
+    list($ok, $body, $meta) = fetch_url_auto($url);
+    if (!$ok || empty($body)) {
+        return null;
+    }
+
+    $results = json_decode($body, true);
+    if (!empty($results) && isset($results[0]['lat']) && isset($results[0]['lon'])) {
+        return [
+            'lat' => $results[0]['lat'],
+            'lon' => $results[0]['lon']
+        ];
+    }
+
+    return null;
+}
+
+// Calcul de distance via OSRM (Open Source Routing Machine)
+function calculate_distance($lat1, $lon1, $lat2, $lon2) {
+    if (!$lat1 || !$lon1 || !$lat2 || !$lon2) {
+        return null;
+    }
+
+    // Format: longitude,latitude (attention à l'ordre!)
+    $url = 'https://router.project-osrm.org/route/v1/driving/'
+        . $lon1 . ',' . $lat1 . ';' . $lon2 . ',' . $lat2
+        . '?overview=false';
+
+    list($ok, $body, $meta) = fetch_url_auto($url);
+    if (!$ok || empty($body)) {
+        return null;
+    }
+
+    $result = json_decode($body, true);
+    if (isset($result['routes'][0]['distance'])) {
+        // Distance en mètres, convertir en km
+        return round($result['routes'][0]['distance'] / 1000, 1);
+    }
+
+    return null;
+}
+
+function execute($user, $langs, $db) {
     if (!$user->admin) {
         accessforbidden($langs->trans("AccessDenied"));
     }
@@ -74,7 +123,6 @@ function execute($url, $user, $langs, $db, $api_key) {
     $langs->load('agenda');
     date_default_timezone_set('Europe/Paris');
 
-    // Get month and year from URL parameters
     $month = GETPOST('month', 'int') ? GETPOST('month', 'int') : date('m');
     $year = GETPOST('year', 'int') ? GETPOST('year', 'int') : date('Y');
 
@@ -146,15 +194,9 @@ function execute($url, $user, $langs, $db, $api_key) {
         }
 
         $location = isset($action->location) ? $action->location : '';
-        $mapping = rawurlencode($location);
-        list($ok, $body, $meta) = fetch_url_auto($url . '/geocode/search?text=' . $mapping . '&format=json&apiKey=' . $api_key);
-        $content = json_decode($body, true);
-        $mappingLocation = isset($content['results'][0]['bbox']['lon1']) && isset($content['results'][0]['bbox']['lat1'])
-            ? $content['results'][0]['bbox']['lat1'] . ',' . $content['results'][0]['bbox']['lon1'] : null;
 
-        if ($mappingLocation === null && isset($content['results']['lon']) && isset($content['results']['lat'])) {
-            $mappingLocation = $content['results']['lat'] . ',' . $content['results']['lon'];
-        }
+        // Géocodage du lieu de l'événement
+        $eventCoords = geocode_address($location);
 
         $row = array(
             $eventDate,
@@ -178,35 +220,24 @@ function execute($url, $user, $langs, $db, $api_key) {
             if ($res_check) {
                 $obj_check = $db->fetch_object($res_check);
                 if ($obj_check) {
-                    $isUserInEvent = 'Oui ';
-                    $address = '' . $obj_check->address . ' ' . $obj_check->zip . ' ' . $obj_check->town;
-                    $mappingAddress =  rawurlencode($address);
-                    list($ok, $body, $meta) = fetch_url_auto($url . '/geocode/search?text=' . $mappingAddress . '&format=json&apiKey=' . $api_key);
-                    $content = json_decode($body, true);
-                    $mappingUserLocation = isset($content['results'][0]['bbox']['lon1']) && isset($content['results'][0]['bbox']['lat1'])
-                        ? $content['results'][0]['bbox']['lat1'] . ',' . $content['results'][0]['bbox']['lon1'] : null;
-                    if ($mappingUserLocation === null && isset($content['results']['lon']) && isset($content['results']['lat'])) {
-                        $mappingUserLocation = $content['results']['lat'] . ',' . $content['results']['lon'];
-                    }
-                    if ($mappingUserLocation !== null && $mappingLocation !== null) {
-                        list($ok, $body, $meta) = fetch_url_auto($url . '/routing?waypoints=' . $mappingLocation . '|' . $mappingUserLocation . '&details=elevation&mode=drive&apiKey=' . $api_key);
-                        $content = json_decode($body, true);
-                        if (isset($content['features'][0]['properties']['distance'])) {
-                        $distance = $content['features'][0]['properties']['distance'] / 1000;
-                        $distance = '( ' . round($distance, 1) . ' km )';
+                    $userAddress = trim($obj_check->address . ' ' . $obj_check->zip . ' ' . $obj_check->town);
+                    $userCoords = geocode_address($userAddress);
+
+                    if ($eventCoords && $userCoords) {
+                        $distance = calculate_distance(
+                            $eventCoords['lat'],
+                            $eventCoords['lon'],
+                            $userCoords['lat'],
+                            $userCoords['lon']
+                        );
+
+                        if ($distance !== null) {
+                            $isUserInEvent = 'X (' . $distance . ' km)';
                         } else {
-                            $distance = "Informations manquantes";
+                            $isUserInEvent = 'X (distance n/a)';
                         }
-                        $isUserInEvent .= $distance;
                     } else {
-                        if ($mappingUserLocation === null) {
-                            $isUserInEvent .= "(Lieu de l'utilisateur inconnu)";
-                            //$isUserInEvent .= $url . '/geocode/search?text=' . $mappingAddress . '&format=json&apiKey=' . $api_key;
-                        }
-                        if ($mappingLocation === null) {
-                            $isUserInEvent .= "(Lieu de l'événement inconnu)";
-                            //$isUserInEvent .= $url . '/geocode/search?text=' . $mapping . '&format=json&apiKey=' . $api_key;
-                        }
+                        $isUserInEvent = 'X (géoloc n/a)';
                     }
                 }
             }
@@ -221,4 +252,4 @@ function execute($url, $user, $langs, $db, $api_key) {
     exit;
 };
 
-execute($url, $user, $langs, $db, $api_key);
+execute($user, $langs, $db);
