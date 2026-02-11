@@ -197,7 +197,7 @@ if (GETPOST("viewlist", 'alpha') || $mode == 'show_list') {
 	exit;
 }
 
-if (GETPOST("viewperuser", 'alpha') || $mode == 'show_peruser') {
+if (GETPOST("ViewPerUser", 'alpha') || $mode == 'show_peruser') {
 	$param = '';
 	if (is_array($_POST)) {
 		foreach ($_POST as $key => $val) {
@@ -517,6 +517,9 @@ $viewmode .= '<a class="btnTitle reposition" href="'.DOL_URL_ROOT.'/comm/action/
 $viewmode .= img_picto($langs->trans("ViewPerUser"), 'object_calendarperuser', 'class="pictoactionview block"');
 //$viewmode .= '</span>';
 $viewmode .= '<span class="valignmiddle text-plus-circle btnTitle-label hideonsmartphone">'.$langs->trans("ViewPerUser").'</span></a>';
+$viewmode .= '<a class="btnTitle reposition" href="'.DOL_URL_ROOT.'/comm/action/export.php">';
+$viewmode .= img_picto($langs->trans("ExportAgenda"), 'fa-external-link-alt', 'class="block"');
+$viewmode .= '<span class="valignmiddle text-plus-circle btnTitle-label hideonsmartphone">'.$langs->trans("ExportAgenda").'</span></a>';
 
 // Add more views from hooks
 $parameters = array(); $object = null;
