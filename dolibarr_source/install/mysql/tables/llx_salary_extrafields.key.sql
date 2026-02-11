@@ -1,0 +1,20 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ALTER TABLE llx_salary_extrafields ADD INDEX idx_salary_extrafields (fk_object);

@@ -1,0 +1,21 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ALTER TABLE llx_stock_mouvement_extrafields ADD INDEX idx_stock_mouvement_extrafields (fk_object);

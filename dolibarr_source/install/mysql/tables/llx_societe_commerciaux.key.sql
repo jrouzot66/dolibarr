@@ -1,0 +1,19 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ALTER TABLE llx_societe_commerciaux ADD UNIQUE INDEX uk_societe_commerciaux (fk_soc, fk_user);

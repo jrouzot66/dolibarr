@@ -1,0 +1,21 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ALTER TABLE llx_bom_bom_extrafields ADD INDEX idx_bom_bom_extrafields_fk_object (fk_object);
+

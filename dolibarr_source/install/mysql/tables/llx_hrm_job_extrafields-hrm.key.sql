@@ -1,0 +1,21 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ALTER TABLE llx_hrm_job_extrafields ADD INDEX idx_job_fk_object(fk_object);
+

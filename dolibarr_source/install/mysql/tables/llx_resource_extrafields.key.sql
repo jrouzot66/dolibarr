@@ -1,0 +1,20 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ALTER TABLE llx_resource_extrafields ADD INDEX idx_resource_extrafields (fk_object);

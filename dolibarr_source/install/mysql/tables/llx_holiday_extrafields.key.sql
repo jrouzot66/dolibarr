@@ -1,0 +1,21 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ALTER TABLE llx_holiday_extrafields ADD INDEX idx_holiday_extrafields (fk_object);
+

@@ -1,0 +1,20 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ALTER TABLE llx_facture_fourn_extrafields ADD INDEX idx_facture_fourn_extrafields (fk_object);

@@ -1,0 +1,23 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ALTER TABLE llx_adherent_extrafields ADD INDEX idx_adherent_extrafields (fk_object);

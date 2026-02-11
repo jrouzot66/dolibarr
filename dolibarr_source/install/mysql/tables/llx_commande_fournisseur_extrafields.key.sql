@@ -1,0 +1,19 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ALTER TABLE llx_commande_fournisseur_extrafields ADD INDEX idx_commande_fournisseur_extrafields (fk_object);

@@ -1,0 +1,20 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ALTER TABLE llx_usergroup_extrafields ADD INDEX idx_usergroup_extrafields (fk_object);

@@ -1,0 +1,20 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ALTER TABLE llx_propal_extrafields ADD INDEX idx_propal_extrafields (fk_object);

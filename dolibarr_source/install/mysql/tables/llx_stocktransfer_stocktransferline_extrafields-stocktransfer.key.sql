@@ -1,0 +1,19 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ALTER TABLE llx_stocktransfer_stocktransferline_extrafields ADD INDEX idx_fk_object(fk_object);
+

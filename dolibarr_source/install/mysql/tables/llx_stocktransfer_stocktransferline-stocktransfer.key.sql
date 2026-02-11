@@ -1,0 +1,24 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ALTER TABLE llx_stocktransfer_stocktransferline ADD INDEX idx_stocktransfer_stocktransferline_rowid (rowid);
+
+
+
+
+
+

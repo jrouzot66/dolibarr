@@ -1,0 +1,19 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ALTER TABLE llx_c_incoterms ADD UNIQUE INDEX uk_c_incoterms (code);

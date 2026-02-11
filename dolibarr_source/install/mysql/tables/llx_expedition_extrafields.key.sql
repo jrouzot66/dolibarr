@@ -1,0 +1,20 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ALTER TABLE llx_expedition_extrafields ADD INDEX idx_expedition_extrafields (fk_object);

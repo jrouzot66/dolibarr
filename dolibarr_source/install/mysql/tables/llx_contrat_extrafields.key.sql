@@ -1,0 +1,20 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ALTER TABLE llx_contrat_extrafields ADD INDEX idx_contrat_extrafields (fk_object);

@@ -1,0 +1,20 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ALTER TABLE llx_bordereau_cheque ADD UNIQUE INDEX uk_bordereau_cheque (ref, entity);

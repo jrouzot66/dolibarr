@@ -1,0 +1,22 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ALTER TABLE llx_product_pricerules ADD CONSTRAINT unique_level UNIQUE (level);
