@@ -9,7 +9,7 @@
 require '../../main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
 
-$api_key = '374b3668188f41aa946021786f6c8148';
+$api_key = 'fa0ae567a5eb446c80f38d7cd8a4c4ef';
 $url = 'https://api.geoapify.com/v1';
 
 function fetch_url_auto($url)
