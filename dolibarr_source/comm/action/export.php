@@ -74,7 +74,10 @@ function execute($url, $user, $langs, $db, $api_key) {
     $langs->load('agenda');
     date_default_timezone_set('Europe/Paris');
 
-    $currentYear = date('Y');
+    // Get month and year from URL parameters
+    $month = GETPOST('month', 'int') ? GETPOST('month', 'int') : date('m');
+    $year = GETPOST('year', 'int') ? GETPOST('year', 'int') : date('Y');
+
     $sql_users = "SELECT rowid, firstname, lastname FROM ".MAIN_DB_PREFIX."user";
     $sql_users .= " WHERE statut = 1 ORDER BY firstname ASC";
 
@@ -90,7 +93,8 @@ function execute($url, $user, $langs, $db, $api_key) {
     }
 
     $sql = "SELECT * FROM ".MAIN_DB_PREFIX."actioncomm";
-    $sql .= " WHERE YEAR(datep) = ".$currentYear;
+    $sql .= " WHERE YEAR(datep) = ".$year;
+    $sql .= " AND MONTH(datep) = ".$month;
     $sql .= " ORDER BY datep ASC";
 
     $resql = $db->query($sql);
@@ -105,7 +109,7 @@ function execute($url, $user, $langs, $db, $api_key) {
     }
 
     header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename="agenda_export_'.$currentYear.'_'.date('Y-m-d_H-i-s').'.csv"');
+    header('Content-Disposition: attachment; filename="agenda_export_'.sprintf('%04d', $year).'_'.sprintf('%02d', $month).'_'.date('Y-m-d_H-i-s').'.csv"');
 
     $output = fopen('php://output', 'w');
     fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
@@ -142,8 +146,7 @@ function execute($url, $user, $langs, $db, $api_key) {
         }
 
         $location = isset($action->location) ? $action->location : '';
-        $mapping =  rawurlencode($location);
-
+        $mapping = rawurlencode($location);
         list($ok, $body, $meta) = fetch_url_auto($url . '/geocode/search?text=' . $mapping . '&format=json&apiKey=' . $api_key);
         $content = json_decode($body, true);
         $mappingLocation = isset($content['results'][0]['bbox']['lon1']) && isset($content['results'][0]['bbox']['lat1'])
@@ -219,6 +222,3 @@ function execute($url, $user, $langs, $db, $api_key) {
 };
 
 execute($url, $user, $langs, $db, $api_key);
-
-
-
