@@ -36,63 +36,9 @@ class modWorkshop extends DolibarrModules
         $this->const = array();
 
         $this->tabs = array();
-
-        $this->boxes = array();
-
-        // Permissions
-        $this->rights = array();
-        $this->rights_class = 'workshop';
-        $this->rights[0][0] = 190001;
-        $this->rights[0][1] = 'Lire les ateliers';
-        $this->rights[0][3] = 1;
-        $this->rights[0][4] = 'read';
-
-        $this->rights[1][0] = 190002;
-        $this->rights[1][1] = 'Créer/modifier les ateliers';
-        $this->rights[1][3] = 1;
-        $this->rights[1][4] = 'write';
-
-        $this->rights[2][0] = 190003;
-        $this->rights[2][1] = 'Supprimer les ateliers';
-        $this->rights[2][3] = 1;
-        $this->rights[2][4] = 'delete';
-
-        $this->menu = array();
-
-        // Set top menu entry
-        $this->menu_arbo = array(
-            'topmenuname' => 'workshop',
-            'mainmenucode' => 'workshop',
-            'mainmenu' => 'Atelier',
-            'menu' => array(
-                'object' => 'workshop',
-                'title' => 'Atelier',
-                'url' => '/custom/workshop/list.php',
-                'target' => '_self',
-                'perms' => '$user->rights->workshop->read',
-                'enabled' => '1',
-                'position' => 100,
-                'submenus' => array(
-                     'new' => array(
-                        'title' => 'Nouvel Atelier',
-                        'url' => '/custom/workshop/card.php?action=create',
-                        'target' => '_self',
-                        'perms' => '$user->rights->workshop->write',
-                        'enabled' => '1',
-                        'position' => 10,
-                    ),
-                    'list' => array(
-                        'title' => 'Liste',
-                        'url' => '/custom/workshop/list.php',
-                        'target' => '_self',
-                        'perms' => '$user->rights->workshop->read',
-                        'enabled' => '1',
-                        'position' => 20,
-                    )
-                )
-            )
-        );
-    }
+		$this->tabs[] = array('url' => '/custom/workshop/list.php', 'title' => $langs->trans("WorkshopList"), 'main' => 1, 'left' => 1);
+		$this->tabs[] = array('url' => '/custom/workshop/stats.php', 'title' => $langs->trans("WorkshopStats"), 'main' => 1, 'left' => 1);
+	}
 
     public function init($options = '')
     {
